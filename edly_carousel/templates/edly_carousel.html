@@ -1,0 +1,27 @@
+<h1>{{ self.display_name }}</h1>
+<div class="carousel-start {{self.layout}}">
+    {{ self.start_page_content | safe }}
+</div>
+<div class="carousel hide {{self.layout}}">
+
+    <div class="outer-block {{self.layout}}">
+        <div class="mask">
+            <div class="slideset">
+                {% for slide in slides %}
+                <div class="slide">
+                    <div class="text-holder">
+                        {{ slide | safe }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <a href="#" class="btn-prev"><i class="fa fa-angle-left" aria-hidden="true"></i></a>
+    <a href="#" class="btn-next"><i class="fa fa-angle-right" aria-hidden="true"></i></a>
+    <div class="pagination {{self.layout}}"></div>
+    <div class="transparent-bg hide">
+        <img class='logo-img' src="{{logo_img}}">
+        <div class="loading-bar"></div>
+    </div>
+</div>

@@ -1,0 +1,586 @@
+{% with usage_id=self.scope_ids.usage_id %}
+<div class="wrapper-comp-settings is-active editor-with-buttons google-edit-wrapper" id="{{usage_id}}-document-settings-tab" data-usage-id="{{usage_id}}">
+  <script type="text/html" data-name="input-template">
+    <li class="field comp-setting-entry is-set">
+      <div class="static-buttons">
+        <button class="static-buttons add-paragraph">Paragraph</button>
+        <button class="static-buttons wistia-video">Wistia</button>
+        <button class="static-buttons add-audio">Audio</button>
+        <button class="static-buttons add-image">Image</button>
+        <button class="static-buttons survey-mcq">Survey MCQ</button>
+        <button class="static-buttons survey-mrq">Survey MRQ</button>
+        <button class="static-buttons formative-mcq">Formative MCQ</button>
+        <button class="static-buttons formative-mrq">Formative MRQ</button>
+        <button class="static-buttons summative-mcq">Summative MCQ</button>
+        <button class="static-buttons summative-mrq">Summative MRQ</button>
+        <button class="static-buttons formative-mcq-resp">Formative MCQ (Response based)</button>
+        <button class="static-buttons formative-mrq-resp">Formative MRQ (Response based)</button>
+        <button class="static-buttons summative-mcq-resp">Summative MCQ (Response based)</button>
+        <button class="static-buttons summative-mrq-resp">Summative MRQ (Response based)</button>
+        <button class="static-buttons del-button">Delete Slide</button>
+      </div>
+      <div class="wrapper-comp-setting">
+        <span class="tip setting-help"></span>
+        <div class='codemirror-editor-wrapper'>
+          <textarea class="block-xml-editor edit-data" name="editor"></textarea>
+        </div>
+      </div>
+    </li>
+  </script>
+
+  <script type="text/html" data-name="input-formative-mcq-resp-template">
+    <div class="pakx-assessment">
+        <div class="assessment-container" data-type="formative" id="formative-mcq-resp-one">
+            <div class="column question-column">
+                <div class="assessment-div v2">
+                    <p class="question-text">What is the first day of the week?</p>
+                    <p class="instruction">Choose the correct answer</p>
+                    <div class="answer-div">
+                        <label for='formative-radiobox-resp-1' class="answer-label">
+                            <input type='radio' name='formative-mcq-resp-one' value='Monday' id='formative-radiobox-resp-1'  class="options correct" />
+                            <span class="fake-radio"></span>
+                            <i class="ico icon-Check" aria-hidden="true"></i>
+                            <i class="ico icon-Cancel" aria-hidden="true"></i>
+                            Monday
+                        </label>
+                        <span id='result-1'></span>
+                        <div class="answer-feedback 0 hidden">Incorrect!</div>
+                        <div class="answer-feedback 1 hidden">Correct!</div>
+                    </div>
+                    <div class="answer-div">
+                        <label for='formative-radiobox-resp-2' class="answer-label">
+                            <input type='radio' name='formative-mcq-resp-one' value='Tuesday' id='formative-radiobox-resp-2'  class="options" />
+                            <span class="fake-radio"></span>
+                            <i class="ico icon-Check" aria-hidden="true"></i>
+                            <i class="ico icon-Cancel" aria-hidden="true"></i>
+                            Tuesday
+                        </label>
+                        <span id='result-2'></span>
+                        <div class="answer-feedback 0 hidden">Incorrect!</div>
+                        <div class="answer-feedback 1 hidden">Correct!</div>
+                    </div>
+                    <button type='button' class="mrq-submit button-disabled">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+  </script>
+
+  <script type="text/html" data-name="input-summative-mcq-resp-template">
+    <div class="pakx-assessment">
+        <div class="assessment-container" data-type="summative" id="summative-mcq-resp-one">
+            <div class="column question-column">
+                <div class="assessment-div v2">
+                    <p class="question-text">What is the first day of the week?</p>
+                    <p class="instruction">Choose the correct answer</p>
+                    <div class="answer-div">
+                        <label for='summative-radiobox-resp-1' class="answer-label">
+                            <input type='radio' name='summative-mcq-resp-one' value='Monday' id='summative-radiobox-resp-1'  class="options correct" />
+                            <span class="fake-radio"></span>
+                            <i class="ico icon-Check" aria-hidden="true"></i>
+                            <i class="ico icon-Cancel" aria-hidden="true"></i>
+                            Monday
+                        </label>
+                        <span id='result-1'></span>
+                        <div class="answer-feedback 0 hidden">Incorrect!</div>
+                        <div class="answer-feedback 1 hidden">Correct!</div>
+                    </div>
+                    <div class="answer-div">
+                        <label for='summative-radiobox-resp-2' class="answer-label">
+                            <input type='radio' name='summative-mcq-resp-one' value='Tuesday' id='summative-radiobox-resp-2'  class="options" />
+                            <span class="fake-radio"></span>
+                            <i class="ico icon-Check" aria-hidden="true"></i>
+                            <i class="ico icon-Cancel" aria-hidden="true"></i>
+                            Tuesday
+                        </label>
+                        <span id='result-2'></span>
+                        <div class="answer-feedback 0 hidden">Incorrect!</div>
+                        <div class="answer-feedback 1 hidden">Correct!</div>
+                    </div>
+                    <div class="attempts-div">
+                        <p><span class="note">Note: </span><span class="counter"></span></p>
+                    </div>
+                    <button type='button' class="mrq-submit button-disabled">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+  </script>
+
+  <script type="text/html" data-name="input-formative-mrq-resp-template">
+    <div class="pakx-assessment">
+        <div class="assessment-container" data-type="formative" id="formative-mrq-resp-one">
+            <div class="column question-column">
+                <div class="assessment-div v2">
+                    <p class="question-text">What is the first day of the week?</p>
+                    <p class="instruction">Choose possible answers</p>
+                    <div class="answer-div">
+                        <label for='formative-checkbox-resp-1' class="answer-label">
+                            <input type='checkbox' name='formative-mrq-resp-one' value='Monday' id='formative-checkbox-resp-1' class="options correct" />
+                            <span class="fake-checkbox"></span>
+                            <i class="ico icon-Check" aria-hidden="true"></i>
+                            <i class="ico icon-Cancel" aria-hidden="true"></i>
+                            Monday
+                        </label>
+                        <span id='result-1'></span>
+                        <div class="answer-feedback 0 hidden">Incorrect!</div>
+                        <div class="answer-feedback 1 hidden">Correct!</div>
+                    </div>
+                    <div class="answer-div">
+                        <label for='formative-checkbox-resp-2' class="answer-label">
+                            <input type='checkbox' name='formative-mrq-resp-one' value='Tuesday' id='formative-checkbox-resp-2' class="options" />
+                            <span class="fake-checkbox"></span>
+                            <i class="ico icon-Check" aria-hidden="true"></i>
+                            <i class="ico icon-Cancel" aria-hidden="true"></i>
+                            Tuesday
+                        </label>
+                        <span id='result-2'></span>
+                        <div class="answer-feedback 0 hidden">Incorrect!</div>
+                        <div class="answer-feedback 1 hidden">Correct!</div>
+                    </div>
+                    <div class="column result-column wrong-selection hidden" id="result">
+                      <h2 class="heding-box">
+                        <i class="ico icon-alert" aria-hidden="true"></i>
+                        <span>Partially Correct</span>
+                      </h2>
+                      <p class="success-details">Your answers are partially correct</p>
+                    </div>
+                    <button type='button' class="mrq-submit button-disabled">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+  </script>
+
+  <script type="text/html" data-name="input-summative-mrq-resp-template">
+    <div class="pakx-assessment">
+        <div class="assessment-container" data-type="summative" id="summative-mrq-resp-one">
+            <div class="column question-column">
+                <div class="assessment-div v2">
+                    <p class="question-text">What is the first day of the week?</p>
+                    <p class="instruction">Choose possible answers</p>
+                    <div class="answer-div">
+                        <label for='summative-checkbox-resp-1' class="answer-label">
+                            <input type='checkbox' name='summative-mrq-resp-one' value='Monday' id='summative-checkbox-resp-1' class="options correct" />
+                            <span class="fake-checkbox"></span>
+                            <i class="ico icon-Check" aria-hidden="true"></i>
+                            <i class="ico icon-Cancel" aria-hidden="true"></i>
+                            Monday
+                        </label>
+                        <span id='result-1'></span>
+                        <div class="answer-feedback 0 hidden">Incorrect!</div>
+                        <div class="answer-feedback 1 hidden">Correct!</div>
+                    </div>
+                    <div class="answer-div">
+                        <label for='summative-checkbox-resp-2' class="answer-label">
+                            <input type='checkbox' name='summative-mrq-resp-one' value='Tuesday' id='summative-checkbox-resp-2' class="options" />
+                            <span class="fake-checkbox"></span>
+                            <i class="ico icon-Check" aria-hidden="true"></i>
+                            <i class="ico icon-Cancel" aria-hidden="true"></i>
+                            Tuesday
+                        </label>
+                        <span id='result-2'></span>
+                        <div class="answer-feedback 0 hidden">Incorrect!</div>
+                        <div class="answer-feedback 1 hidden">Correct!</div>
+                    </div>
+                    <div class="attempts-div">
+                        <p><span class="note">Note: </span><span class="counter"></span></p>
+                    </div>
+                    <div class="column result-column wrong-selection hidden" id="result">
+                      <h2 class="heding-box">
+                        <i class="ico icon-alert" aria-hidden="true"></i>
+                        <span>Partially Correct</span>
+                      </h2>
+                      <p class="success-details">Your answers are partially correct</p>
+                    </div>
+                    <button type='button' class="mrq-submit button-disabled">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+  </script>
+
+  <script type="text/html" data-name="input-audio-template">
+    <audio controls class="audio-player " src="https://www.computerhope.com/jargon/m/example.mp3">
+      <code>audio</code> not supportted.</audio>
+  </script>
+
+  <script type="text/html" data-name="input-survey-mcq-template">
+        <!-- Unique ID for each survey assessment  (MCQ) -->
+    <div class="assessment-container" data-type="survey" id="survey-mcq-one">
+      <div class="column question-column">
+        <div class="assessment-div">
+          <p class="question-text">Start day of the week?</p>
+          <p class="instruction">Choose the correct answer</p>
+          <div class="answer-div">
+            <label for="survey-radiobox-1" class="answer-label">
+              <!--Name should be same for all items, for simplicity assessment-container id should be name
+              i.e container id is survey-mcq-one so name for all radio boxes should also survey-mcq-one -->
+              <input type="radio" name="survey-mcq-one" value="Sunday" id="survey-radiobox-1" class="options correct">
+              <span class="fake-radio"></span>
+              <i class="fa fa-check" aria-hidden="true"></i>
+              <i class="fa fa-times" aria-hidden="true"></i>Sunday</label>
+          </div>
+
+          <div class="answer-div">
+            <label for="survey-radiobox-2" class="answer-label">  <!--Add correct class for correct choices -->
+              <input type="radio" name="survey-mcq-one" value="Monday" id="survey-radiobox-2" class="options correct">
+              <span class="fake-radio"></span>
+              <i class="fa fa-check" aria-hidden="true"></i>
+              <i class="fa fa-times" aria-hidden="true"></i>
+                Monday
+              </label>
+          </div>
+          <button type="button" class="mrq-submit button-disabled">Submit</button>
+        </div>
+      </div>
+    </div>
+  </script>
+  <script type="text/html" data-name="input-survey-mrq-template">
+        <!-- Unique ID for each survey assessment  (MRQ) -->
+    <div class="assessment-container" data-type="survey" id="survey-mrq-one">
+      <div class="column question-column">
+        <div class="assessment-div">
+          <p class="question-text">Start day of the week?</p>
+          <p class="instruction">Choose possible answers</p>
+          <div class="answer-div">
+            <label for="survey-checkbox-1" class="answer-label">
+            	<!--Name should be same for all items, for simplicity assessment-container id should be name
+            	i.e container id is survey-mrq-one so name for all checkboxes should also survey-mrq-one -->
+              <input type="checkbox" name="survey-mrq-one" value="Sunday" id="survey-checkbox-1" class="options correct">
+              <span class="fake-checkbox"></span>
+              <i class="fa fa-check" aria-hidden="true"></i>
+              <i class="fa fa-times" aria-hidden="true"></i>Sunday</label>
+          </div>
+
+          <div class="answer-div">
+            <label for="survey-checkbox-2" class="answer-label">  <!--Add correct class for correct choices -->
+              <input type="checkbox" name="survey-mrq-one" value="Monday" id="survey-checkbox-2" class="options correct">
+              <span class="fake-checkbox"></span>
+              <i class="fa fa-check" aria-hidden="true"></i>
+              <i class="fa fa-times" aria-hidden="true"></i>
+                Monday
+              </label>
+          </div>
+          <button type="button" class="mrq-submit button-disabled">Submit</button>
+        </div>
+      </div>
+    </div>
+  </script>
+  <script type="text/html" data-name="input-formative-mrq-template">
+        <!-- Unique ID for each formative assessment  (MRQ) -->
+    <div class="assessment-container" data-type="formative" id="formative-mrq-one">
+      <div class="column question-column">
+        <div class="assessment-div">
+          <p class="question-text">Start day of the week?</p>
+          <p class="instruction">Choose possible answers</p>
+          <div class="answer-div">
+            <label for="formative-checkbox-1" class="answer-label">
+            	<!--Name should be same for all items, for simplicity assessment-container id should be name
+            	i.e container id is formative-mrq-one so name for all checkboxes should also formative-mrq-one -->
+              <input type="checkbox" name="formative-mrq-one" value="Sunday" id="formative-checkbox-1" class="options ">
+              <span class="fake-checkbox"></span>
+              <i class="fa fa-check" aria-hidden="true"></i>
+              <i class="fa fa-times" aria-hidden="true"></i>Sunday</label>
+          </div>
+
+          <div class="answer-div">
+            <label for="formative-checkbox-2" class="answer-label">  <!--Add correct class for correct choices -->
+              <input type="checkbox" name="formative-mrq-one" value="Monday" id="formative-checkbox-2" class="options correct">
+              <span class="fake-checkbox"></span>
+              <i class="fa fa-check" aria-hidden="true"></i>
+              <i class="fa fa-times" aria-hidden="true"></i>
+                Monday
+              </label>
+          </div>
+          <button type="button" class="mrq-submit button-disabled">Submit</button>
+        </div>
+      </div>
+      <div class="column result-column hidden">
+        <h2 class="heding-box">
+          <i class="fa fa-check" aria-hidden="true"></i>
+          <i class="fa fa-times" aria-hidden="true"></i>
+          <span class="success-title hidden">Correct!</span>
+          <span class="failure-title hidden">Incorrect!</span>
+        </h2>
+        <p class="success-details hidden">Success message here</p>
+        <p class="failure-details hidden">Failure message here</p>
+      </div>
+    </div>
+  </script>
+
+  <script type="text/html" data-name="input-formative-mcq-template">
+        <!-- Unique ID for each formative assessment  (MCQ) -->
+    <div class="assessment-container" data-type="formative" id="formative-mcq-one">
+      <div class="column question-column">
+        <div class="assessment-div">
+          <p class="question-text">Start day of the week?</p>
+          <p class="instruction">Choose the correct answer</p>
+          <div class="answer-div">
+            <label for="formative-radiobox-1" class="answer-label">
+              <!--Name should be same for all items, for simplicity assessment-container id should be name
+              i.e container id is formative-mcq-one so name for all radio boxes should also formative-mcq-one -->
+              <input type="radio" name="formative-mcq-one" value="Sunday" id="formative-radiobox-1" class="options ">
+              <span class="fake-radio"></span>
+              <i class="fa fa-check" aria-hidden="true"></i>
+              <i class="fa fa-times" aria-hidden="true"></i>Sunday</label>
+          </div>
+
+          <div class="answer-div">
+            <label for="formative-radiobox-2" class="answer-label">  <!--Add correct class for correct choices -->
+              <input type="radio" name="formative-mcq-one" value="Monday" id="formative-radiobox-2" class="options correct">
+              <span class="fake-radio"></span>
+              <i class="fa fa-check" aria-hidden="true"></i>
+              <i class="fa fa-times" aria-hidden="true"></i>
+                Monday
+              </label>
+          </div>
+          <button type="button" class="mrq-submit button-disabled">Submit</button>
+        </div>
+      </div>
+      <div class="column result-column hidden">
+        <h2 class="heding-box">
+          <i class="fa fa-check" aria-hidden="true"></i>
+          <i class="fa fa-times" aria-hidden="true"></i>
+          <span class="success-title hidden">Correct!</span>
+          <span class="failure-title hidden">Incorrect!</span>
+        </h2>
+        <p class="success-details hidden">Success message here</p>
+        <p class="failure-details hidden">Failure message here</p>
+      </div>
+    </div>
+  </script>
+  <script type="text/html" data-name="input-summative-mrq-template">
+        <!-- Unique ID for each summative assessment  (MRQ) -->
+    <div class="assessment-container" data-type="summative" id="summative-mrq-one">
+      <div class="column question-column">
+        <div class="assessment-div">
+          <p class="question-text">Start day of the week?</p>
+          <p class="instruction">Choose possible answers</p>
+          <div class="answer-div">
+            <label for="summative-checkbox-1" class="answer-label">
+            	<!--Name should be same for all items, for simplicity assessment-container id should be name
+            	i.e container id is summative-mrq-one so name for all checkboxes should also summative-mrq-one -->
+              <input type="checkbox" name="summative-mrq-one" value="Sunday" id="summative-checkbox-1" class="options ">
+              <span class="fake-checkbox"></span>
+              <i class="fa fa-check" aria-hidden="true"></i>
+              <i class="fa fa-times" aria-hidden="true"></i>Sunday</label>
+          </div>
+
+          <div class="answer-div">
+            <label for="summative-checkbox-2" class="answer-label">  <!--Add correct class for correct choices -->
+              <input type="checkbox" name="summative-mrq-one" value="Monday" id="summative-checkbox-2" class="options correct">
+              <span class="fake-checkbox"></span>
+              <i class="fa fa-check" aria-hidden="true"></i>
+              <i class="fa fa-times" aria-hidden="true"></i>
+                Monday
+              </label>
+          </div>
+          <div class="attempts-div">
+            <p><span class="note">Note: </span><span class="counter"></span></p>
+          </div>
+          <button type="button" class="mrq-submit button-disabled">Submit</button>
+        </div>
+      </div>
+      <div class="column result-column hidden">
+        <h2 class="heding-box">
+          <i class="fa fa-check" aria-hidden="true"></i>
+          <i class="fa fa-times" aria-hidden="true"></i>
+          <span class="success-title hidden">Correct!</span>
+          <span class="failure-title hidden">Incorrect!</span>
+        </h2>
+        <p class="success-details hidden">Success message here</p>
+        <p class="failure-details hidden">Failure message here</p>
+      </div>
+    </div>
+  </script>
+
+  <script type="text/html" data-name="input-summative-mcq-template">
+        <!-- Unique ID for each summative assessment  (MCQ) -->
+    <div class="assessment-container" data-type="summative" id="summative-mcq-one">
+      <div class="column question-column">
+        <div class="assessment-div">
+          <p class="question-text">Start day of the week?</p>
+          <p class="instruction">Choose the correct answer</p>
+          <div class="answer-div">
+            <label for="summative-radiobox-1" class="answer-label">
+              <!--Name should be same for all items, for simplicity assessment-container id should be name
+              i.e container id is summative-mcq-one so name for all radio boxes should also summative-mcq-one -->
+              <input type="radio" name="summative-mcq-one" value="Sunday" id="summative-radiobox-1" class="options ">
+              <span class="fake-radio"></span>
+              <i class="fa fa-check" aria-hidden="true"></i>
+              <i class="fa fa-times" aria-hidden="true"></i>Sunday</label>
+          </div>
+
+          <div class="answer-div">
+            <label for="summative-radiobox-2" class="answer-label">  <!--Add correct class for correct choices -->
+              <input type="radio" name="summative-mcq-one" value="Monday" id="summative-radiobox-2" class="options correct">
+              <span class="fake-radio"></span>
+              <i class="fa fa-check" aria-hidden="true"></i>
+              <i class="fa fa-times" aria-hidden="true"></i>
+                Monday
+              </label>
+          </div>
+          <div class="attempts-div">
+            <p><span class="note">Note: </span><span class="counter"></span></p>
+          </div>
+          <button type="button" class="mrq-submit button-disabled">Submit</button>
+        </div>
+      </div>
+      <div class="column result-column hidden">
+        <h2 class="heding-box">
+          <i class="fa fa-check" aria-hidden="true"></i>
+          <i class="fa fa-times" aria-hidden="true"></i>
+          <span class="success-title hidden">Correct!</span>
+          <span class="failure-title hidden">Incorrect!</span>
+        </h2>
+        <p class="success-details hidden">Success message here</p>
+        <p class="failure-details hidden">Failure message here</p>
+      </div>
+    </div>
+  </script>
+
+  <script type="text/html" data-name="input-img-template">
+    <img width="100%" src="https://www.gstatic.com/webp/gallery3/1_webp_ll.png" />
+  </script>
+
+  <script type="text/html" data-name="input-para-template">
+    <p class="prg">Lorem ipsum dolor sit amet</p>
+  </script>
+
+  <script type="text/html" data-name="input-wistia-template">
+    <div class="videoWrapper"><iframe src="//fast.wistia.net/embed/iframe/avk9twrrbn" allowtransparency="true"
+                                      frameborder="0" scrolling="no" class="wistia_embed" name="wistia_embed"
+                                      allowfullscreen mozallowfullscreen webkitallowfullscreen oallowfullscreen
+                                      msallowfullscreen width="100%" height="450"></iframe></div>
+  </script>
+
+  <form id="{{usage_id}}-form"></form>
+  <div class="user-inputs-and-validation">
+    <div class="xblock-inputs editor_content_wrapper">
+      <ul class="list-input settings-list" id="{{usage_id}}-ul">
+        <li class="field comp-setting-entry is-set">
+          <div class="wrapper-comp-setting">
+            <label class="label setting-label" for="edit_display_name">Display Name</label>
+            <input class="input setting-input edit-display-name" id="edit_display_name" form="{{usage_id}}-form" name="title" value="{{ self.display_name }}" type="text" data-default-value="{{self.display_name}}">
+          </div>
+          <span class="tip setting-help">This name appears in the horizontal navigation at the top of the page.</span>
+        </li>
+        <li class="field comp-setting-entry is-set">
+          <div class="wrapper-comp-setting">
+            <label class="label setting-label" for="layout_option">Layout Spacing</label>
+            <select class="layout-options" id="layout_option" form="{{usage_id}}-form" name="layout">
+              {% for layout in layout_options %}
+              <option value="{{ layout }}" {% if self.carousel_options.layout == layout %}selected{% endif %}>
+                {{  layout }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+        </li>
+        <li class="field comp-setting-entry is-set">
+            <div class="wrapper-comp-setting">
+              <div class="wrapper-comp-setting">
+                  <label class="label setting-label" for="start-page">
+                    The start page content</label>
+                <div class='codemirror-editor-wrapper'>
+                  <textarea class="block-xml-editor edit-data" name="start_page" form="{{usage_id}}-form" id="start-page">{{ self.start_page_content }}</textarea>
+                </div>
+              </div>
+          </div>
+        </li>
+        <li class="field comp-setting-entry is-set">
+            <div class="wrapper-comp-setting">
+              <div class="wrapper-comp-setting">
+                  <label class="label setting-label" for="last-page">
+                    The last page content</label>
+                <div class='codemirror-editor-wrapper'>
+                  <textarea class="block-xml-editor edit-data" name="last_page" form="{{usage_id}}-form" id="last-page">{{ self.last_page }}</textarea>
+                </div>
+              </div>
+          </div>
+        </li>
+        <li class="field comp-setting-entry is-set">
+          <div class="wrapper-comp-setting">
+            <label class="label setting-label" for="max-attempts">Max attempts (0 means unlimited)</label>
+            <input type="number" min="0" max="99" name="max_attempts" id="max-attempts" form="{{usage_id}}-form" value="{{self.maximum_attempts}}"/>
+          </div>
+          <div class="wrapper-comp-setting">
+            <label  class="label setting-label" for="passing-marks">Passing marks</label>
+            <input type="number" min="70" max="100" name="passing_marks" id="passing-marks" form="{{usage_id}}-form" value="{{self.carousel_options.passing_marks}}"/>
+          </div>
+          <div class="wrapper-comp-setting">
+            <label  class="label setting-label" for="last-attempt-text">Last attempts text</label>
+            <input type="text" name="last_attempt_text" id="last-attempt-text" form="{{usage_id}}-form" value="{{self.carousel_options.last_attempt_text}}"/>
+          </div>
+          <div class="wrapper-comp-setting">
+            <label  class="label setting-label" for="passing-msg">Passing Message</label>
+            <input type="text" name="passing_msg" id="passing-msg" form="{{usage_id}}-form" value="{{self.carousel_options.passing_msg}}"/>
+          </div>
+          <div class="wrapper-comp-setting">
+            <label  class="label setting-label" for="failing_title">Failed title</label>
+            <input type="text" name="failing_title" id="failing_title" form="{{usage_id}}-form" value="{{self.carousel_options.failing_title}}"/>
+          </div>
+          <div class="wrapper-comp-setting">
+            <label  class="label setting-label" for="passing_title">Passing title</label>
+            <input type="text" name="passing_title" id="passing_title" form="{{usage_id}}-form" value="{{self.carousel_options.passing_title}}"/>
+          </div>
+          <div class="wrapper-comp-setting div-attempts">
+            <label  class="label setting-label" for="incomplete_feedback_title">Feedback title, when user has not interacted with all assessments</label>
+            <input type="text" name="incomplete_feedback_title" id="incomplete_feedback_title" form="{{usage_id}}-form" value="{{self.incomplete_feedback_title}}"/>
+          </div>
+          <div class="wrapper-comp-setting div-attempts">
+            <label  class="label setting-label" for="incomplete_feedback">Feedback message when user has not interacted with all assessments</label>
+            <input type="text" name="incomplete_feedback" id="incomplete_feedback" form="{{usage_id}}-form" value="{{self.incomplete_feedback}}"/>
+          </div>
+          <div class="wrapper-comp-setting">
+            <label  class="label setting-label" for="progressbar_text">Progressbar text</label>
+            <input type="text" name="progressbar_text" id="progressbar_text" form="{{usage_id}}-form" value="{{self.carousel_options.progressbar_text}}"/>
+          </div>
+          <div class="wrapper-comp-setting div-attempts">
+            <label  class="label setting-label" for="marker_passing_score">Passing marker text</label>
+            <input type="text" name="marker_passing_score" id="marker_passing_score" form="{{usage_id}}-form" value="{{self.carousel_options.marker_passing_score}}"/>
+          </div>
+          <div class="wrapper-comp-setting">
+            <label  class="label setting-label" for="attempts_text">Attempts text</label>
+            <input type="text" name="attempts_text" id="attempts_text" form="{{usage_id}}-form" value="{{self.carousel_options.attempts_text}}"/>
+            <span class="tip setting-help">COUNTER will be replaced by actual count, so it must be part of the string.</span>
+          </div>
+          {% with show_button=self.carousel_options.show_link_button %}
+          <div class="wrapper-comp-setting">
+            <label  class="label setting-label" for="show_link_button">Show Link Button?</label>
+            <input id="show_link_button" class="enable-learned-checkbox" form="{{usage_id}}-form" type="checkbox" name="show_link_button" {% if self.carousel_options.show_link_button %} checked="checked" {% endif %} style="height:20px;width:20px;">
+          </div>
+
+          <div id="link-options" {% if not show_button %} class="hide"{%endif%}>
+            <div class="wrapper-comp-setting">
+              <label  class="label setting-label" for="link_button_text">Link Button Text</label>
+              <input type="text" name="link_button_text" id="link_button_text" form="{{usage_id}}-form" value="{{self.carousel_options.link_button_text}}"/>
+            </div>
+            <div class="wrapper-comp-setting">
+              <label  class="label setting-label" for="link_button_url">Link page URL</label>
+              <input type="text" name="link_button_url" id="link_button_url" form="{{usage_id}}-form" value="{{self.carousel_options.link_button_url}}"/>
+            </div>
+          </div>
+          {% endwith %}
+        </li>
+      </ul>
+    </div>
+  </div>
+  <div class="xblock-actions">
+    <span class="xblock-editor-error-message"></span>
+    <ul>
+      <li class="action-item">
+        <button class="button action-primary add-slide-button">Add Slide</button>
+      </li>
+      <li class="action-item">
+        <button form="{{usage_id}}-form" class="button action-primary save-button">Save</button>
+      </li>
+
+      <li class="action-item">
+        <button class="button cancel-button" id="cancel_button">Cancel</button>
+      </li>
+    </ul>
+  </div>
+</div>
+{% endwith %}

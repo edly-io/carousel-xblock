@@ -1,0 +1,16 @@
+[FORMAT]
+max-line-length=120
+ignore=migrations
+disable =
+    import-error,
+    invalid-name,
+    method-hidden,
+    abstract-method,
+    no-name-in-module,
+    too-many-ancestors,
+    consider-using-f-string,
+    too-many-public-methods,
+    missing-class-docstring,
+    missing-module-docstring,
+    missing-function-docstring,
+    logging-format-interpolation,

@@ -1,0 +1,16 @@
+{
+  "name": "edly_carousel",
+  "version": "0.1.2",
+  "description": "PakistanX Carousel",
+  "repository": "https://github.com/edly-io/edly-carousel-xblock",
+  "scripts": {
+    "is-es5": "es-check es5 ./dist/*.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix --ext .js --ext .jsx .",
+    "precommit": "npm run lint",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "eslint": "^7.27.0"
+  }
+}
