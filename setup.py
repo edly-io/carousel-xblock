@@ -4,7 +4,7 @@ from __future__ import absolute_import
 
 import os
 
-from setuptools import setup
+from setuptools import find_packages, setup
 
 
 def package_data(pkg, roots):
@@ -30,15 +30,19 @@ setup(
     description='edly_carousel XBlock creates a Carousel with multiple pages and dynamic content '
                 'for each page i.e Audio, Video, Image & Text',
     license='',
-    packages=[
-        'edly_carousel',
-    ],
+    packages = find_packages(),
     install_requires=[
         'XBlock',
     ],
     entry_points={
         'xblock.v1': [
             'edly_carousel = edly_carousel:EdlyCarouselXBlock',
+        ],
+        'lms.djangoapp': [
+            'survey_app = edly_carousel.survey_app.apps:SurveyAppConfig',
+        ],
+        'cms.djangoapp': [
+            'survey_app = edly_carousel.survey_app.apps:SurveyAppConfig',
         ]
     },
     package_data=package_data("edly_carousel", ["public", "templates"]),
