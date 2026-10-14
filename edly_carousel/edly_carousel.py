@@ -34,6 +34,7 @@ class EdlyCarouselXBlock(XBlock, ScorableXBlockMixin):
     display_name = String(help="This name appears in horizontal navigation at the top of the page.",
                           default="Quiz / Exam",
                           scope=Scope.content)
+    description = String(help="Short text shown under the title", default="", scope=Scope.content)
     carousel_options = Dict(help="Editable carousel options", scope=Scope.settings, default={
         'passing_marks': 70, 'max_attempts': 0,
         'is_summative': False, 'layout': 'moderate',
@@ -113,6 +114,8 @@ class EdlyCarouselXBlock(XBlock, ScorableXBlockMixin):
         """
 
         return {
+            'has_start_page': self.has_start_page,
+            'has_summary_page': not self.hide_start_and_summary,
             'passing_msg': self.passing_msg,
             'is_summative': self.is_summative,
             "has_slides": len(self.slides) > 0,
@@ -137,7 +140,7 @@ class EdlyCarouselXBlock(XBlock, ScorableXBlockMixin):
     def student_view_context(self):
         """Get student view context."""
 
-        slides = self.slides + [self.last_slide]
+        slides = self.slides if self.hide_start_and_summary else self.slides + [self.last_slide]
         logo_img = self._get_image_path('logo.svg')
 
         return {
@@ -185,9 +188,15 @@ class EdlyCarouselXBlock(XBlock, ScorableXBlockMixin):
         """
 
         correct_submissions = 0
-        for value in self.user_responses.values():
+        for value in self.current_responses.values():
             correct_submissions += value.get('grade', 0) if value.get('type', 'survey') == 'summative' else 0
         return correct_submissions
+
+    @property
+    def has_start_page(self):
+        """Without a start page (hidden, or left blank) the carousel opens straight on the first slide."""
+
+        return not self.hide_start_and_summary and bool(self.start_page.strip())
 
     @property
     def start_page_content(self):
@@ -196,10 +205,21 @@ class EdlyCarouselXBlock(XBlock, ScorableXBlockMixin):
         return self.start_page
 
     @property
+    def current_responses(self):
+        """
+        User responses for questions still in the carousel. Answers saved for a question the author
+        has since removed or re-inserted (new id) don't count towards completion or the grade.
+        """
+
+        slides = ''.join(self.slides)
+        return {key: value for key, value in self.user_responses.items()
+                if '"{}"'.format(key) in slides or "'{}'".format(key) in slides}
+
+    @property
     def assessment_completed(self):
         """Has user interacted with all assessments"""
 
-        return len(self.user_responses) >= self.total_assessments
+        return len(self.current_responses) >= self.total_assessments
 
     def _submit_carousel_grade(self, data):
         """
@@ -253,6 +273,12 @@ class EdlyCarouselXBlock(XBlock, ScorableXBlockMixin):
         """ is summative carousel or not """
 
         return self._get_carousel_option('is_summative', False)
+
+    @property
+    def hide_start_and_summary(self):
+        """Leave out the start page and the summary (last) page"""
+
+        return self._get_carousel_option('hide_start_and_summary', False)
 
     @property
     def layout(self):
@@ -423,7 +449,7 @@ class EdlyCarouselXBlock(XBlock, ScorableXBlockMixin):
 
         return {'user_progress': self.user_obtained_marks, 'result': 'success',
                 'completed_and_passed': self.assessment_completed,
-                'interactions': len(self.user_responses), 'total_assessments': self.total_assessments}
+                'interactions': len(self.current_responses), 'total_assessments': self.total_assessments}
 
     @XBlock.handler
     def get_user_state(self, request, suffix=''):  # pylint: disable=unused-argument
@@ -432,7 +458,7 @@ class EdlyCarouselXBlock(XBlock, ScorableXBlockMixin):
         """
 
         response = self._base_response
-        response.update({'user_response': self.user_responses})
+        response.update({'user_response': self.current_responses})
         return self.json_response(response)
 
     @XBlock.json_handler
@@ -462,6 +488,9 @@ class EdlyCarouselXBlock(XBlock, ScorableXBlockMixin):
 
         if int(data.get('passing_marks', 70)) not in (70, 100):
             return {'result': 'error', 'message': "Passing score should be either 70 or 100"}
+        if data.get('hide_start_and_summary', 'off') == 'on':
+            if not data.get('slides'):
+                return {'result': 'error', 'message': "Add at least one slide to hide the start and summary pages"}
         show_link_button = data.get('show_link_button', 'off') == 'on'
         if not data.get('is_summative', False) and show_link_button:
             return {'result': 'error', 'message': "To show link button, add at least one Summative assessment"}
@@ -481,6 +510,7 @@ class EdlyCarouselXBlock(XBlock, ScorableXBlockMixin):
 
         self.slides = data.get('slides')
         self.display_name = data.get("title")
+        self.description = data.get("description", "").strip()
         self.carousel_options = CAROUSEL_SCHEMA(data)
         self.weight = data.get('summative_assessments', 1) if self.is_summative else 1
         self.last_page = data.get('last_page')
