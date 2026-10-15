@@ -1,7 +1,12 @@
 <h1>{{ self.display_name }}</h1>
+{% if self.description %}
+<p class="carousel-description">{{ self.description }}</p>
+{% endif %}
+{% if self.has_start_page %}
 <div class="carousel-start {{self.layout}}">
     {{ self.start_page_content | safe }}
 </div>
+{% endif %}
 <div class="carousel hide {{self.layout}}">
 
     <div class="outer-block {{self.layout}}">

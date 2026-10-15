@@ -19,6 +19,10 @@
   clear: both;
 }
 
+.carousel-description {
+    margin: 0 0 20px;
+}
+
 .carousel-start {
     background: #F2F2F2;
     text-align: center;
@@ -126,10 +130,6 @@
 .carousel .mask .slide.active {
     height: auto;
 }
-.carousel .mask .slide:last-child { margin: 0 0 60px; }
-.carousel .mask .slide.progress-slide:last-child {
-    margin: 0 0 60px;
-}
 .carousel .mask .slide img {
 	display: block;
 	height: auto;
@@ -187,45 +187,7 @@ audio::-webkit-media-controls-panel { background-color: #d7d7d7; }
 }
 .carousel .btn-prev i { padding: 0 5px 0 0; }
 .carousel .btn-next i { padding: 0 0 0 5px; }
-.carousel .btn-next.last {
-    height: 50px;
-    border: 2px solid #395B87;
-    border-radius: 6px;
-    font-weight: bold;
-    font-size: 16px;
-    line-height: 48px;
-    color: #395B87 !important;
-    display: block;
-    text-decoration: none;
-    text-transform: uppercase;
-    background: #F2F2F2;
-    z-index: 2;
-    padding: 0 15px;
-    width: 240px;
-    box-sizing: border-box;
-    display: block;
-    position: relative;
-    left: auto;
-    right: auto;
-    margin: -80px auto 25px;
-    top: 2px;
-    transition: none !important;
-}
-.carousel .btn-next.last i { display: none; }
-.carousel .btn-next.last:focus { color: #395B87 !important; }
-.carousel .btn-next.last:hover {
-    color: #253B58 !important;
-    border: 2px solid #253B58;
-}
-.carousel .btn-next.last:before {
-    content: 'Review';
-    margin: 0 15px 0 0;
-}
 
-.carousel .btn-next.last:after {
-    content: '\f0e2';
-    font-family: 'FontAwesome';
-}
 .carousel .pagination {
     padding: 0 0 20px;
     z-index: 9;
@@ -297,6 +259,39 @@ audio::-webkit-media-controls-panel { background-color: #d7d7d7; }
     text-align: center;
 }
 .carousel .text-holder p { text-align: center }
+.carousel .learning-slide {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    text-align: start;
+}
+.carousel .learning-slide-art {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 180px;
+    overflow: hidden;
+    border-radius: 16px;
+    background: #fff;
+}
+.carousel .mask .slide .learning-slide-art img {
+    width: 160px;
+    height: 160px;
+    margin: 0;
+    object-fit: cover;
+}
+.carousel .text-holder .learning-slide-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: bold;
+    line-height: 32px;
+}
+.carousel .text-holder .learning-slide-text {
+    margin: 0;
+    font-size: 16px;
+    line-height: 24px;
+    text-align: start;
+}
 .videoWrapper {
     position: relative;
     padding-bottom: 56.25%; /* 16:9 */
@@ -789,24 +784,10 @@ p.incomplete-feedback {
     right: auto;
     transform: rotateY(180deg);
 }
-.rtl-content .carousel .btn-next.last {
-    left: auto !important;
-}
 .rtl-content .carousel .btn-prev {
     right: 38px;
     left: auto;
     transform: rotate(180deg);
-}
-.rtl-content .carousel .btn-next.last {
-    transform: none;
-}
-.rtl-content .carousel .btn-next.last:before {
-    display: inline-block;
-    margin: 0 0 0 15px;
-    content: "دوبارہ دیکھیں";
-}
-.rtl-content .carousel .btn-next.last:after {
-    transform: rotateY(180deg);
 }
 .rtl-content .carousel .text-holder p.passing-msg {
     text-align: center !important;
@@ -1016,13 +997,6 @@ margin: 0 0 0 15px;
         height: 11.5px;
         left: 12px;
         top: 15px;
-    }
-    .carousel .btn-next.last {
-        width: 130px;
-        height: 40px;
-        font-size: 12px;
-        line-height: 37px;
-        margin: -70px auto 15px;
     }
     .bar-half-circle {
         width: 200px;

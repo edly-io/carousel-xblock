@@ -1,5 +1,6 @@
 """Utility methods"""
 
+from html.parser import HTMLParser
 from xml.etree import ElementTree
 from django.template import Context, Template
 from pkg_resources import resource_string as pkg_resource_string
@@ -61,6 +62,33 @@ FEEDBACK_HTML = """
   </div>
 </div>
 """
+
+
+class _QuestionIdParser(HTMLParser):
+    """Collects the id of every question container (class "assessment-container")."""
+
+    def __init__(self):
+        super().__init__()
+        self.ids = set()
+
+    def handle_starttag(self, tag, attrs):
+        attrs = dict(attrs)
+        if 'assessment-container' in (attrs.get('class') or '').split() and attrs.get('id'):
+            self.ids.add(attrs['id'])
+
+
+def question_ids(slides):
+    """
+    Ids of the questions in the given slides. Saved user responses are keyed by these ids.
+    :param slides: (list) slide HTML strings
+
+    :return: (set) question container ids
+    """
+    parser = _QuestionIdParser()
+    for slide in slides:
+        parser.feed(slide)
+    parser.close()
+    return parser.ids
 
 
 def resource_string(path):

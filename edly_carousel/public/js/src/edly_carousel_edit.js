@@ -106,7 +106,11 @@ EdlyCarouselEditBlock.prototype.getCodeMirror = function(INPUT_TEMPLATE) {
 
 EdlyCarouselEditBlock.prototype.insertCodeSnippet = function(event, target, templateID) {
     _EdlyCarouselEditBlock = target;
-    var code = $(templateID).text();
+    // Give each inserted question its own ids, so two questions in one carousel don't share state.
+    var uid = Date.now().toString(36);
+    var code = $(templateID).text()
+        .replace(/(formative-(?:mcq|mrq)-)one/g, '$1' + uid)
+        .replace(/(formative-(?:radiobox|checkbox)-)(\d+)/g, '$1' + uid + '-$2');
     var editor = _EdlyCarouselEditBlock.editors[$(event.target).attr("data-id")]
     editor.setValue(editor.getValue() + code);
 }
@@ -125,20 +129,13 @@ EdlyCarouselEditBlock.prototype.registerButtonEvents = function(INPUT_TEMPLATE, 
                   'callback': _EdlyCarouselEditBlock.insertCodeSnippet
                   }
     var selectorAndSnippets = {
+        '.add-learning-slide': 'script[type="text/html"][data-name="input-learning-slide-template"]',
         '.add-image': 'script[type="text/html"][data-name="input-img-template"]',
         '.add-audio': 'script[type="text/html"][data-name="input-audio-template"]',
         '.add-paragraph': 'script[type="text/html"][data-name="input-para-template"]',
         '.wistia-video': 'script[type="text/html"][data-name="input-wistia-template"]',
-        '.survey-mcq': 'script[type="text/html"][data-name="input-survey-mcq-template"]',
-        '.survey-mrq': 'script[type="text/html"][data-name="input-survey-mrq-template"]',
-        '.summative-mcq': 'script[type="text/html"][data-name="input-summative-mcq-template"]',
-        '.summative-mrq': 'script[type="text/html"][data-name="input-summative-mrq-template"]',
         '.formative-mcq': 'script[type="text/html"][data-name="input-formative-mcq-template"]',
         '.formative-mrq': 'script[type="text/html"][data-name="input-formative-mrq-template"]',
-        '.formative-mcq-resp': 'script[type="text/html"][data-name="input-formative-mcq-resp-template"]',
-        '.formative-mrq-resp': 'script[type="text/html"][data-name="input-formative-mrq-resp-template"]',
-        '.summative-mcq-resp': 'script[type="text/html"][data-name="input-summative-mcq-resp-template"]',
-        '.summative-mrq-resp': 'script[type="text/html"][data-name="input-summative-mrq-resp-template"]',
     }
     for (const [ selector, templateID ] of Object.entries(selectorAndSnippets)) {
         _EdlyCarouselEditBlock.registerButtonEvent(selector, templateID, params)

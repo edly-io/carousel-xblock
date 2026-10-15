@@ -115,12 +115,16 @@ function EdlyCarouselXBlock(runtime, element, params) {
             _EdlyCarouselXBlock.handleSubmit(eventObject);
         });
 
+        function openCarousel() {
+            _EdlyCarouselXBlock.startCarousel();
+            var audioPlayers = $('.audio-player', element);
+            initCarousel(_EdlyCarouselXBlock, USAGE_ID, element, audioPlayers);
+        }
+
         $(_EdlyCarouselXBlock.VIEW.START_BUTTON).click(function (e) {
             e.preventDefault();
             if (params.has_slides) {
-                _EdlyCarouselXBlock.startCarousel();
-                var audioPlayers = $('.audio-player', element);
-                initCarousel(_EdlyCarouselXBlock, USAGE_ID, element, audioPlayers);
+                openCarousel();
             } else {
                 alert("No slides found, add slides from studio to start the Carousel");
             }
@@ -139,6 +143,10 @@ function EdlyCarouselXBlock(runtime, element, params) {
             if (result){
                 _EdlyCarouselXBlock.response = result;
                 _EdlyCarouselXBlock.populateInitialState(result);
+            }
+            // No start page: open on the first slide once the user state (needed by the last slide) is in.
+            if (!params.has_start_page) {
+                openCarousel();
             }
         });
 
@@ -227,6 +235,12 @@ EdlyCarouselXBlock.prototype.init = function(callBack){
         if (callBack){
             callBack(result);
         }
+    }).fail(function () {
+        // Without the saved answers the carousel still has to open when there is no start page.
+        _EdlyCarouselXBlock.hideLoader();
+        if (callBack){
+            callBack(null);
+        }
     });
 }
 
@@ -267,10 +281,18 @@ EdlyCarouselXBlock.prototype.populateInitialState = function(response){
     Object.entries(response.user_response).forEach(function([key, value]) {
         _EdlyCarouselXBlock.containerDiv = $("#" + key, _EdlyCarouselXBlock.element);
 
-        value.choices.map(function(itemID) {
-            var selectedItem = $("#" + itemID, _EdlyCarouselXBlock.element).prop('checked', true);
-            _EdlyCarouselXBlock.highlightSelectedItem(selectedItem[0]);
-        })
+        // Answers saved for a question or option the author has since removed or re-inserted
+        // (new ids) have nothing to restore; skip them rather than stop the carousel loading.
+        var selectedItems = value.choices.map(function(itemID) {
+            return $("#" + itemID, _EdlyCarouselXBlock.containerDiv)[0];
+        }).filter(Boolean);
+        if (!selectedItems.length) {
+            return;
+        }
+        selectedItems.forEach(function(item) {
+            $(item).prop('checked', true);
+            _EdlyCarouselXBlock.highlightSelectedItem(item);
+        });
 
         _EdlyCarouselXBlock.handleSubmit(null);
         _EdlyCarouselXBlock.updateAttemptCounter(value);
@@ -283,7 +305,13 @@ EdlyCarouselXBlock.prototype.lastSlide = function(btnNext, className) {
     var isSummative = _EdlyCarouselXBlock.params.is_summative;
     var result = _EdlyCarouselXBlock.response;
 
-    if (!result.completed_and_passed && $(_EdlyCarouselXBlock.VIEW.INCOMPLETE_FEEDBACK_DIV)[0]) {
+    // No summary page: summative answers are graded as they are submitted, so there is no score to show.
+    if (!_EdlyCarouselXBlock.params.has_summary_page) {
+        isSummative ? _EdlyCarouselXBlock.updateNextBtn(btnNext, className) : _EdlyCarouselXBlock.showFeedback(btnNext, className)
+        return
+    }
+
+    if (result && !result.completed_and_passed && $(_EdlyCarouselXBlock.VIEW.INCOMPLETE_FEEDBACK_DIV)[0]) {
         _EdlyCarouselXBlock.updateNextBtn(btnNext, 'hide')
 		_EdlyCarouselXBlock.showAssessmentInCompleteMsg(result.interactions, result.total_assessments)
         return
@@ -634,7 +662,6 @@ EdlyCarouselXBlock.prototype.startCarousel = function() {
 			slides: '>*',
 			activeClass: 'active',
 			disabledClass: 'disabled',
-			lastClass: 'last',
 			btnPrev: 'prev-' + options.usuageID,
 			btnNext: 'next-' + options.usuageID,
 			generatePagination: false,
@@ -830,6 +857,29 @@ EdlyCarouselXBlock.prototype.startCarousel = function() {
 						self.switchSlide();
 					}
 				});
+			} else if (isTouchDevice && this.options.handleTouch && this.mask.length) {
+				// No Hammer.js on the page: a horizontal swipe still moves one slide, without wrapping round.
+				this.touchStartHandler = function(e) {
+					var touch = e.originalEvent.touches[0];
+					self.touchStart = {x: touch.clientX, y: touch.clientY};
+				};
+				this.touchEndHandler = function(e) {
+					if (!self.touchStart) {
+						return;
+					}
+					var touch = e.originalEvent.changedTouches[0];
+					var dx = touch.clientX - self.touchStart.x, dy = touch.clientY - self.touchStart.y;
+					self.touchStart = null;
+					if (Math.abs(dx) <= self.options.swipeThreshold || Math.abs(dx) <= Math.abs(dy)) {
+						return;
+					}
+					if (dx < 0 && self.currentStep < self.stepsCount - 1) {
+						self.nextSlide();
+					} else if (dx > 0 && self.currentStep > 0) {
+						self.prevSlide();
+					}
+				};
+				this.mask.on('touchstart', this.touchStartHandler).on('touchend', this.touchEndHandler);
 			}
 		},
 		onWindowResize: function() {
@@ -1118,9 +1168,9 @@ EdlyCarouselXBlock.prototype.startCarousel = function() {
 				this.btnPrev.add(this.btnNext).removeClass(this.options.disabledClass);
 				this.btnPrev.add(this.btnNext).removeClass(this.options.xblock.nextBtnClass);
 				if (this.currentStep === 0) {this.btnPrev.addClass(this.options.disabledClass);}
+				// The last slide hides the next button rather than turning it into a Review (restart) button.
 				if (this.currentStep === this.stepsCount - 1) {
-						this.btnPrev.addClass(this.options.disabledClass);
-						this.options.xblock.lastSlide(this.btnNext, this.options.lastClass)
+						this.options.xblock.lastSlide(this.btnNext, this.options.disabledClass)
 				}
 			// add class if not enough slides
 			this.gallery.toggleClass('not-enough-slides', this.sumSize <= this.maskSize);
@@ -1193,6 +1243,9 @@ EdlyCarouselXBlock.prototype.startCarousel = function() {
 			// destroy swipe handler
 			if (this.swipeHandler) {
 				this.swipeHandler.destroy();
+			}
+			if (this.touchStartHandler) {
+				this.mask.off('touchstart', this.touchStartHandler).off('touchend', this.touchEndHandler);
 			}
 
 			// remove inline styles, classes and pagination
