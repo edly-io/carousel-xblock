@@ -14,7 +14,7 @@ from xblock.fields import Scope, String, Dict, Float, List
 from opaque_keys.edx.keys import CourseKey
 
 from edly_carousel.schema import CAROUSEL_SCHEMA
-from edly_carousel.utils import (render_template, resource_string, FEEDBACK_HTML,
+from edly_carousel.utils import (render_template, resource_string, question_ids, FEEDBACK_HTML,
                                  add_incomplete_progress_feedback_html)
 
 
@@ -211,9 +211,8 @@ class EdlyCarouselXBlock(XBlock, ScorableXBlockMixin):
         has since removed or re-inserted (new id) don't count towards completion or the grade.
         """
 
-        slides = ''.join(self.slides)
-        return {key: value for key, value in self.user_responses.items()
-                if '"{}"'.format(key) in slides or "'{}'".format(key) in slides}
+        ids = question_ids(self.slides)
+        return {key: value for key, value in self.user_responses.items() if key in ids}
 
     @property
     def assessment_completed(self):
