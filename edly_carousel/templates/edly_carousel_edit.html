@@ -167,10 +167,17 @@
         </li>
         <li class="field comp-setting-entry is-set">
           <div class="wrapper-comp-setting">
-            <label class="label setting-label" for="hide_start_and_summary">Hide start and summary pages?</label>
-            <input id="hide_start_and_summary" form="{{usage_id}}-form" type="checkbox" name="hide_start_and_summary" {% if self.hide_start_and_summary %} checked="checked" {% endif %} style="height:20px;width:20px;">
+            <label class="label setting-label" for="hide_start_page">Hide start page?</label>
+            <input id="hide_start_page" form="{{usage_id}}-form" type="checkbox" name="hide_start_page" {% if self.hide_start_page %} checked="checked" {% endif %} style="height:20px;width:20px;">
           </div>
-          <span class="tip setting-help">The carousel opens on the first slide and ends on the last one. Assessments are still graded, but learners don't see their score or the incomplete-assessments message.</span>
+          <span class="tip setting-help">The carousel opens straight on the first slide.</span>
+        </li>
+        <li class="field comp-setting-entry is-set">
+          <div class="wrapper-comp-setting">
+            <label class="label setting-label" for="hide_summary_page">Hide summary page?</label>
+            <input id="hide_summary_page" form="{{usage_id}}-form" type="checkbox" name="hide_summary_page" {% if self.hide_summary_page %} checked="checked" {% endif %} style="height:20px;width:20px;">
+          </div>
+          <span class="tip setting-help">The carousel ends on the last slide. Assessments are still graded, but learners don't see their score or the incomplete-assessments message.</span>
         </li>
         <li class="field comp-setting-entry is-set">
             <div class="wrapper-comp-setting">
