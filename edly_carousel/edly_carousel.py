@@ -115,7 +115,7 @@ class EdlyCarouselXBlock(XBlock, ScorableXBlockMixin):
 
         return {
             'has_start_page': self.has_start_page,
-            'has_summary_page': not self.hide_start_and_summary,
+            'has_summary_page': not self.hide_summary_page,
             'passing_msg': self.passing_msg,
             'is_summative': self.is_summative,
             "has_slides": len(self.slides) > 0,
@@ -140,7 +140,7 @@ class EdlyCarouselXBlock(XBlock, ScorableXBlockMixin):
     def student_view_context(self):
         """Get student view context."""
 
-        slides = self.slides if self.hide_start_and_summary else self.slides + [self.last_slide]
+        slides = self.slides if self.hide_summary_page else self.slides + [self.last_slide]
         logo_img = self._get_image_path('logo.svg')
 
         return {
@@ -196,7 +196,7 @@ class EdlyCarouselXBlock(XBlock, ScorableXBlockMixin):
     def has_start_page(self):
         """Without a start page (hidden, or left blank) the carousel opens straight on the first slide."""
 
-        return not self.hide_start_and_summary and bool(self.start_page.strip())
+        return not self.hide_start_page and bool(self.start_page.strip())
 
     @property
     def start_page_content(self):
@@ -274,10 +274,16 @@ class EdlyCarouselXBlock(XBlock, ScorableXBlockMixin):
         return self._get_carousel_option('is_summative', False)
 
     @property
-    def hide_start_and_summary(self):
-        """Leave out the start page and the summary (last) page"""
+    def hide_start_page(self):
+        """Leave out the start page. Falls back to the old combined option for blocks saved before the split."""
 
-        return self._get_carousel_option('hide_start_and_summary', False)
+        return self._get_carousel_option('hide_start_page', self._get_carousel_option('hide_start_and_summary', False))
+
+    @property
+    def hide_summary_page(self):
+        """Leave out the summary (last) page. Falls back to the old combined option for blocks saved before the split."""
+
+        return self._get_carousel_option('hide_summary_page', self._get_carousel_option('hide_start_and_summary', False))
 
     @property
     def layout(self):
@@ -487,9 +493,8 @@ class EdlyCarouselXBlock(XBlock, ScorableXBlockMixin):
 
         if int(data.get('passing_marks', 70)) not in (70, 100):
             return {'result': 'error', 'message': "Passing score should be either 70 or 100"}
-        if data.get('hide_start_and_summary', 'off') == 'on':
-            if not data.get('slides'):
-                return {'result': 'error', 'message': "Add at least one slide to hide the start and summary pages"}
+        if data.get('hide_summary_page', 'off') == 'on' and not data.get('slides'):
+            return {'result': 'error', 'message': "Add at least one slide to hide the summary page"}
         show_link_button = data.get('show_link_button', 'off') == 'on'
         if not data.get('is_summative', False) and show_link_button:
             return {'result': 'error', 'message': "To show link button, add at least one Summative assessment"}

@@ -42,7 +42,8 @@ CAROUSEL_SCHEMA = Schema({
     Optional('link_button_text'): str,
     Optional('link_button_url'): str,
     Optional('show_link_button'): to_bool,
-    Optional('hide_start_and_summary'): to_bool,
+    Optional('hide_start_page'): to_bool,
+    Optional('hide_summary_page'): to_bool,
     Optional('incomplete_feedback'): str,
     Optional('incomplete_feedback_title'): str,
 }, extra=ALLOW_EXTRA)
