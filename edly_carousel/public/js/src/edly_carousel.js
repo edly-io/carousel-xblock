@@ -439,6 +439,10 @@ EdlyCarouselXBlock.prototype.showCorrectFeedback = function(resultArea) {
 EdlyCarouselXBlock.prototype.showWrongFeedback = function(resultArea) {
     $(resultArea).find(".success-title").addClass("hidden");
     $(resultArea).find(".success-details").addClass("hidden");
+    // Slides authored before the Uber wording keep the old default title; custom titles stay.
+    $(resultArea).find(".failure-title").filter(function() {
+        return $(this).text().trim() === 'Incorrect!';
+    }).text('Not quite');
     $(resultArea).find(".failure-title").removeClass("hidden");
     $(resultArea).find(".failure-details").removeClass("hidden");
     $(resultArea).addClass('wrong-selection').removeClass('correct-selection');
