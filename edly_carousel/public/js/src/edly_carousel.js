@@ -556,7 +556,7 @@ EdlyCarouselXBlock.prototype.updateContainerDiv = function(option) {
 
 EdlyCarouselXBlock.prototype.handleSubmit = function(submitBtn) {
     _EdlyCarouselXBlock = this;
-    var isCorrect = true, partialCorrect = false, partialWrong = false;
+    var isCorrect = true, partialCorrect = false, partialWrong = false, missedOptions = [];
     _EdlyCarouselXBlock.updateContainerDiv(submitBtn);
     var isResponseBased = _EdlyCarouselXBlock.containerDiv && _EdlyCarouselXBlock.containerDiv.prop('id').includes('resp');
     _EdlyCarouselXBlock.disableSubmitBtn();
@@ -583,10 +583,22 @@ EdlyCarouselXBlock.prototype.handleSubmit = function(submitBtn) {
                     partialWrong = true;
                 }
             }
-        } else if (option.type === 'checkbox'){
-            isCorrect = isCorrect && !includeClass;
+        } else {
+            if (option.type === 'checkbox') {
+                isCorrect = isCorrect && !includeClass;
+            }
+            if (includeClass) {
+                missedOptions.push(option);
+            }
         }
     })
+    // After a wrong answer, also mark the right option(s) the learner didn't pick. Summative
+    // carousels keep them hidden, since a retry would otherwise be given the answer.
+    if (!isCorrect && !_EdlyCarouselXBlock.params.is_summative) {
+        missedOptions.forEach(function(option) {
+            _EdlyCarouselXBlock.applySelectionStyle(option, true);
+        });
+    }
     if (isResponseBased && (partialCorrect && (partialWrong || !isCorrect))){
         $(_EdlyCarouselXBlock.containerDiv).find("#result").removeClass('hidden');
     }
