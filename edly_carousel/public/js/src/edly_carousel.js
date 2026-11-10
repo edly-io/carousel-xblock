@@ -41,7 +41,6 @@ function EdlyCarouselXBlock(runtime, element, params) {
     _EdlyCarouselXBlock.params = params;
     _EdlyCarouselXBlock.response = null;
     _EdlyCarouselXBlock.nextBtnClass = '';
-    _EdlyCarouselXBlock.resetState = false;
     _EdlyCarouselXBlock.containerDiv = null;
     _EdlyCarouselXBlock.responseUpdated = true;
     _EdlyCarouselXBlock.selected_choices = null;
@@ -157,11 +156,6 @@ function EdlyCarouselXBlock(runtime, element, params) {
 	});
 };
 
-EdlyCarouselXBlock.prototype.slideChanged = function() {
-    _EdlyCarouselXBlock = this;
-    _EdlyCarouselXBlock.resetState = true;
-}
-
 EdlyCarouselXBlock.prototype.hideLinkButton = function() {
     _EdlyCarouselXBlock = this;
     $(_EdlyCarouselXBlock.SELECTOR.LINK_BUTTON, _EdlyCarouselXBlock.element).addClass('hide');
@@ -229,6 +223,9 @@ EdlyCarouselXBlock.prototype.setDefaultTexts = function() {
 
 EdlyCarouselXBlock.prototype.init = function(callBack){
     _EdlyCarouselXBlock = this;
+    // Live regions so screen readers announce a submit's result. Set at load, since a region must
+    // exist before it changes, and here rather than in the snippets so existing slides get it too.
+    $(_EdlyCarouselXBlock.element).find('.result-column').attr('role', 'status');
     _EdlyCarouselXBlock.showLoader();
     $.get(_EdlyCarouselXBlock.URL.GET_STATE, function (result) {
         _EdlyCarouselXBlock.hideLoader();
@@ -611,7 +608,6 @@ EdlyCarouselXBlock.prototype.handleSubmit = function(submitBtn) {
     }
 
     _EdlyCarouselXBlock.showSubmissionResults(isCorrect, submitBtn !== null);
-    _EdlyCarouselXBlock.resetState = true;
 }
 
 EdlyCarouselXBlock.prototype.enableSubmitBtn = function() {
@@ -638,7 +634,6 @@ EdlyCarouselXBlock.prototype.resetStyles = function() {
         $(option).parents(".answer-div").find('.answer-feedback').addClass('hidden');
     })
     $(_EdlyCarouselXBlock.containerDiv).find('.missed-correct-answer').remove();
-    _EdlyCarouselXBlock.resetState = false;
 }
 
 EdlyCarouselXBlock.prototype.highlightSelectedItem = function(item) {
@@ -651,9 +646,9 @@ EdlyCarouselXBlock.prototype.highlightSelectedItem = function(item) {
         oneOptionSelected = oneOptionSelected || option.checked
     })
     oneOptionSelected ? _EdlyCarouselXBlock.enableSubmitBtn() : _EdlyCarouselXBlock.disableSubmitBtn()
-    if (_EdlyCarouselXBlock.resetState) {
-        _EdlyCarouselXBlock.resetStyles();
-    }
+    // Editing an answer clears this container's previous result. Done on every click (a no-op before
+    // a submit), since a single block-wide flag left other containers' marks stale.
+    _EdlyCarouselXBlock.resetStyles();
 }
 
 EdlyCarouselXBlock.prototype.handleOptionClick = function(option) {
@@ -1159,7 +1154,6 @@ EdlyCarouselXBlock.prototype.startCarousel = function() {
 			// onchange callback
 			this.updatePaginationUI();
 			this.makeCallback('onBeforeChange', this);
-		    this.options.xblock.slideChanged();
 		},
 		getPagerStepIndex: function() {
 		    if (this.skipShortening() || this.currentStep === 0) {
