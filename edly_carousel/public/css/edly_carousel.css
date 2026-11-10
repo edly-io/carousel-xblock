@@ -1607,3 +1607,13 @@ margin: 0 0 0 15px;
 .pakx-assessment .hide {
     display:none;
 }
+
+/* Screen-reader-only label on a correct option the learner missed. */
+.missed-correct-answer {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
