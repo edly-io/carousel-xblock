@@ -597,10 +597,13 @@ EdlyCarouselXBlock.prototype.handleSubmit = function(submitBtn) {
         }
     })
     // After a wrong answer, also mark the right option(s) the learner didn't pick. Summative
-    // carousels keep them hidden, since a retry would otherwise be given the answer.
-    if (!isCorrect && !_EdlyCarouselXBlock.params.is_summative) {
+    // slides keep them hidden, since a retry would otherwise be given the answer.
+    if (!isCorrect && _EdlyCarouselXBlock.assessmentType() !== 'summative') {
         missedOptions.forEach(function(option) {
             _EdlyCarouselXBlock.applySelectionStyle(option, true);
+            // The mark is colour + an aria-hidden icon, so screen readers need it as text.
+            $(option).parents('div.answer-div').find('label').first()
+                .append('<span class="missed-correct-answer">Correct answer</span>');
         });
     }
     if (isResponseBased && (partialCorrect && (partialWrong || !isCorrect))){
@@ -634,6 +637,7 @@ EdlyCarouselXBlock.prototype.resetStyles = function() {
         $(option).parents("div").removeClass(classesToRemove);
         $(option).parents(".answer-div").find('.answer-feedback').addClass('hidden');
     })
+    $(_EdlyCarouselXBlock.containerDiv).find('.missed-correct-answer').remove();
     _EdlyCarouselXBlock.resetState = false;
 }
 
