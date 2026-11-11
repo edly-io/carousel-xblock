@@ -917,7 +917,7 @@ EdlyCarouselXBlock.prototype.startCarousel = function() {
 				var forward = dx < 0;
 				var hasSlide = forward ? self.currentStep < self.stepsCount - 1 : self.currentStep > 0;
 				var farEnough = Math.abs(dx) > self.maskSize * 0.25 || (Math.abs(dx) > 10 && Math.abs(dx) / elapsed > 0.5);
-				var commit = e.type === 'pointerup' && hasSlide && farEnough;
+				var commit = e.type === 'pointerup' && hasSlide && farEnough && !self.galleryAnimating;
 				self.slider[0].style.transform = '';
 				if (commit) {
 					// Continue from where the finger left off: fold the drag into the margin the slide animates from.
