@@ -113,6 +113,7 @@
     padding: 15px 60px;
 }
 .carousel .mask {
+	touch-action: pan-y; /* vertical drags scroll the page; horizontal ones swipe the slides */
 	width: 100%;
     overflow: hidden;
     height: auto !important;
