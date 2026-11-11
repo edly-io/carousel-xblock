@@ -11,6 +11,14 @@
 
 /* Javascript for EdlyCarouselXBlock. */
 
+// Motion tokens (Uber motion spec): move = base duration, move easing.
+var MOTION = {base: 200, move: 'cubic-bezier(0.4, 0, 0.2, 1)'};
+
+// JS-driven motion is not covered by the theme's reduce-motion CSS, so check at the time of animating.
+function prefersReducedMotion() {
+    return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
 // scroll gallery init
 function initCarousel(xblock, usageID, element, audioPlayers) {
 	jQuery('.carousel', element).scrollGallery({
@@ -544,6 +552,14 @@ EdlyCarouselXBlock.prototype.showSubmissionResults = function(isCorrect, submitR
         ) : _EdlyCarouselXBlock.showWrongFeedback(resultArea);
     }
     if (submitResults) {
+        // One-shot, for the theme's wrong-answer shake: only a learner's own submit adds it (never a
+        // restored answer), and a second wrong submit replays it.
+        var wrapper = $(_EdlyCarouselXBlock.element);
+        wrapper.removeClass('is-just-checked');
+        if (!isCorrect) {
+            void wrapper[0].offsetWidth;
+            wrapper.addClass('is-just-checked');
+        }
         _EdlyCarouselXBlock.submitAttemptResult(grade);
     }
 }
@@ -627,6 +643,7 @@ EdlyCarouselXBlock.prototype.resetStyles = function() {
     var resultsArea = $(_EdlyCarouselXBlock.containerDiv).children(".result-column");
     var options = $(_EdlyCarouselXBlock.containerDiv).find(".options");
     var classesToRemove = _EdlyCarouselXBlock.OPTION_WRONG + " " + _EdlyCarouselXBlock.OPTION_CORRECT;
+    $(_EdlyCarouselXBlock.element).removeClass('is-just-checked');
     resultsArea.removeClass('wrong-selection correct-selection').addClass("hidden");
     $(_EdlyCarouselXBlock.containerDiv).find("#result").addClass("hidden");
     $(options).each(function(id, option) {
@@ -872,30 +889,90 @@ EdlyCarouselXBlock.prototype.startCarousel = function() {
 						self.switchSlide();
 					}
 				});
-			} else if (isTouchDevice && this.options.handleTouch && this.mask.length) {
-				// No Hammer.js on the page: a horizontal swipe still moves one slide, without wrapping round.
-				this.touchStartHandler = function(e) {
-					var touch = e.originalEvent.touches[0];
-					self.touchStart = {x: touch.clientX, y: touch.clientY};
-				};
-				this.touchEndHandler = function(e) {
-					if (!self.touchStart) {
-						return;
-					}
-					var touch = e.originalEvent.changedTouches[0];
-					var dx = touch.clientX - self.touchStart.x, dy = touch.clientY - self.touchStart.y;
-					self.touchStart = null;
-					if (Math.abs(dx) <= self.options.swipeThreshold || Math.abs(dx) <= Math.abs(dy)) {
-						return;
-					}
-					if (dx < 0 && self.currentStep < self.stepsCount - 1) {
-						self.nextSlide();
-					} else if (dx > 0 && self.currentStep > 0) {
-						self.prevSlide();
-					}
-				};
-				this.mask.on('touchstart', this.touchStartHandler).on('touchend', this.touchEndHandler);
+			} else if (window.PointerEvent && this.options.handleTouch && this.mask.length) {
+				this.attachSwipeFollow();
 			}
+		},
+		// No Hammer.js on the page: the slide follows a horizontal touch drag, then moves one slide
+		// (never wrapping round) or springs back. A vertical drag is left to the page scroll.
+		attachSwipeFollow: function() {
+			var self = this, drag = null, mask = this.mask[0];
+			var stopClick = function(e) {
+				e.stopPropagation();
+				e.preventDefault();
+			};
+			var finish = function(e) {
+				if (!drag || e.pointerId !== drag.id) {
+					return;
+				}
+				var d = drag, dx = d.dx, elapsed = Math.max(e.timeStamp - d.t, 1);
+				drag = null;
+				if (!d.active) {
+					return;
+				}
+				// The drag must not also tap whatever is under the finger.
+				mask.addEventListener('click', stopClick, true);
+				setTimeout(function() { mask.removeEventListener('click', stopClick, true); }, 100);
+
+				var forward = dx < 0;
+				var hasSlide = forward ? self.currentStep < self.stepsCount - 1 : self.currentStep > 0;
+				var farEnough = Math.abs(dx) > self.maskSize * 0.25 || (Math.abs(dx) > 10 && Math.abs(dx) / elapsed > 0.5);
+				var commit = e.type === 'pointerup' && hasSlide && farEnough && !self.galleryAnimating;
+				self.slider[0].style.transform = '';
+				if (commit) {
+					// Continue from where the finger left off: fold the drag into the margin the slide animates from.
+					if (d.follow) {
+						self.slider.css(self.animProperty, parseFloat(self.slider.css(self.animProperty)) + dx);
+					}
+					forward ? self.nextSlide() : self.prevSlide();
+				} else if (d.follow) {
+					self.slider[0].animate(
+						[{transform: 'translateX(' + dx + 'px)'}, {transform: 'none'}],
+						{duration: MOTION.base, easing: MOTION.move}
+					);
+				}
+			};
+			this.swipeFollowHandlers = {
+				pointerdown: function(e) {
+					// Scrubbing media in a slide is not a swipe.
+					if (e.pointerType === 'touch' && e.isPrimary && !self.galleryAnimating && !e.target.closest('audio, video, input[type=range]')) {
+						drag = {id: e.pointerId, x: e.clientX, y: e.clientY};
+					}
+				},
+				pointermove: function(e) {
+					if (!drag || e.pointerId !== drag.id) {
+						return;
+					}
+					var dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+					if (!drag.active) {
+						if (Math.max(Math.abs(dx), Math.abs(dy)) < self.options.swipeThreshold) {
+							return;
+						}
+						if (Math.abs(dy) >= Math.abs(dx)) {
+							drag = null;
+							return;
+						}
+						// Horizontal intent: follow from here, so the slide does not jump by the threshold.
+						drag.active = true;
+						drag.follow = !prefersReducedMotion();
+						drag.x = e.clientX;
+						drag.t = e.timeStamp;
+						mask.setPointerCapture(e.pointerId);
+						dx = 0;
+					}
+					// Dragging past the first or last slide resists.
+					var hasSlide = dx < 0 ? self.currentStep < self.stepsCount - 1 : self.currentStep > 0;
+					drag.dx = hasSlide ? dx : dx * 0.3;
+					if (drag.follow) {
+						self.slider[0].style.transform = 'translateX(' + drag.dx + 'px)';
+					}
+				},
+				pointerup: finish,
+				pointercancel: finish
+			};
+			$.each(this.swipeFollowHandlers, function(type, handler) {
+				mask.addEventListener(type, handler);
+			});
 		},
 		onWindowResize: function() {
 			if (!this.galleryAnimating) {
@@ -1129,6 +1206,8 @@ EdlyCarouselXBlock.prototype.startCarousel = function() {
             }
 		},
 		switchSlide: function() {
+			// The one-shot check class must not replay on the slide we land on.
+			$(this.options.xblock.element).removeClass('is-just-checked');
 		    if (typeof wistiaEmbeds !== 'undefined') {
 		        this.pausePlayers(wistiaEmbeds);
 		    }
@@ -1138,7 +1217,7 @@ EdlyCarouselXBlock.prototype.startCarousel = function() {
 			this.galleryAnimating = true;
 			this.tmpProps = {};
 			this.tmpProps[this.animProperty] = this.getStepOffset();
-			this.slider.stop().animate(this.tmpProps, {duration: this.options.animSpeed, complete: function(){
+			this.slider.stop().animate(this.tmpProps, {duration: prefersReducedMotion() ? 0 : this.options.animSpeed, complete: function(){
 				// animation complete
 				self.galleryAnimating = false;
 				if (self.resizeQueue) {
@@ -1258,8 +1337,10 @@ EdlyCarouselXBlock.prototype.startCarousel = function() {
 			if (this.swipeHandler) {
 				this.swipeHandler.destroy();
 			}
-			if (this.touchStartHandler) {
-				this.mask.off('touchstart', this.touchStartHandler).off('touchend', this.touchEndHandler);
+			if (this.swipeFollowHandlers) {
+				$.each(this.swipeFollowHandlers, $.proxy(function(type, handler) {
+					this.mask[0].removeEventListener(type, handler);
+				}, this));
 			}
 
 			// remove inline styles, classes and pagination
