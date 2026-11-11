@@ -914,23 +914,28 @@ EdlyCarouselXBlock.prototype.startCarousel = function() {
 				mask.addEventListener('click', stopClick, true);
 				setTimeout(function() { mask.removeEventListener('click', stopClick, true); }, 100);
 
+				var forward = dx < 0;
+				var hasSlide = forward ? self.currentStep < self.stepsCount - 1 : self.currentStep > 0;
+				var farEnough = Math.abs(dx) > self.maskSize * 0.25 || (Math.abs(dx) > 10 && Math.abs(dx) / elapsed > 0.5);
+				var commit = e.type === 'pointerup' && hasSlide && farEnough;
 				self.slider[0].style.transform = '';
-				if (d.follow) {
+				if (commit) {
+					// Continue from where the finger left off: fold the drag into the margin the slide animates from.
+					if (d.follow) {
+						self.slider.css(self.animProperty, parseFloat(self.slider.css(self.animProperty)) + dx);
+					}
+					forward ? self.nextSlide() : self.prevSlide();
+				} else if (d.follow) {
 					self.slider[0].animate(
 						[{transform: 'translateX(' + dx + 'px)'}, {transform: 'none'}],
 						{duration: MOTION.base, easing: MOTION.move}
 					);
 				}
-				var forward = dx < 0;
-				var hasSlide = forward ? self.currentStep < self.stepsCount - 1 : self.currentStep > 0;
-				var farEnough = Math.abs(dx) > self.maskSize * 0.25 || (Math.abs(dx) > 10 && Math.abs(dx) / elapsed > 0.5);
-				if (e.type === 'pointerup' && hasSlide && farEnough) {
-					forward ? self.nextSlide() : self.prevSlide();
-				}
 			};
 			this.swipeFollowHandlers = {
 				pointerdown: function(e) {
-					if (e.pointerType === 'touch' && e.isPrimary && !self.galleryAnimating) {
+					// Scrubbing media in a slide is not a swipe.
+					if (e.pointerType === 'touch' && e.isPrimary && !self.galleryAnimating && !e.target.closest('audio, video, input[type=range]')) {
 						drag = {id: e.pointerId, x: e.clientX, y: e.clientY};
 					}
 				},
@@ -1210,7 +1215,7 @@ EdlyCarouselXBlock.prototype.startCarousel = function() {
 			this.galleryAnimating = true;
 			this.tmpProps = {};
 			this.tmpProps[this.animProperty] = this.getStepOffset();
-			this.slider.stop().animate(this.tmpProps, {duration: this.options.animSpeed, complete: function(){
+			this.slider.stop().animate(this.tmpProps, {duration: prefersReducedMotion() ? 0 : this.options.animSpeed, complete: function(){
 				// animation complete
 				self.galleryAnimating = false;
 				if (self.resizeQueue) {
