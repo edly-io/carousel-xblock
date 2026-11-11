@@ -41,7 +41,6 @@ function EdlyCarouselXBlock(runtime, element, params) {
     _EdlyCarouselXBlock.params = params;
     _EdlyCarouselXBlock.response = null;
     _EdlyCarouselXBlock.nextBtnClass = '';
-    _EdlyCarouselXBlock.resetState = false;
     _EdlyCarouselXBlock.containerDiv = null;
     _EdlyCarouselXBlock.responseUpdated = true;
     _EdlyCarouselXBlock.selected_choices = null;
@@ -157,11 +156,6 @@ function EdlyCarouselXBlock(runtime, element, params) {
 	});
 };
 
-EdlyCarouselXBlock.prototype.slideChanged = function() {
-    _EdlyCarouselXBlock = this;
-    _EdlyCarouselXBlock.resetState = true;
-}
-
 EdlyCarouselXBlock.prototype.hideLinkButton = function() {
     _EdlyCarouselXBlock = this;
     $(_EdlyCarouselXBlock.SELECTOR.LINK_BUTTON, _EdlyCarouselXBlock.element).addClass('hide');
@@ -229,6 +223,9 @@ EdlyCarouselXBlock.prototype.setDefaultTexts = function() {
 
 EdlyCarouselXBlock.prototype.init = function(callBack){
     _EdlyCarouselXBlock = this;
+    // Live regions so screen readers announce a submit's result. Set at load, since a region must
+    // exist before it changes, and here rather than in the snippets so existing slides get it too.
+    $(_EdlyCarouselXBlock.element).find('.result-column').attr('role', 'status');
     _EdlyCarouselXBlock.showLoader();
     $.get(_EdlyCarouselXBlock.URL.GET_STATE, function (result) {
         _EdlyCarouselXBlock.hideLoader();
@@ -439,6 +436,10 @@ EdlyCarouselXBlock.prototype.showCorrectFeedback = function(resultArea) {
 EdlyCarouselXBlock.prototype.showWrongFeedback = function(resultArea) {
     $(resultArea).find(".success-title").addClass("hidden");
     $(resultArea).find(".success-details").addClass("hidden");
+    // Slides authored before the Uber wording keep the old default title; custom titles stay.
+    $(resultArea).find(".failure-title").filter(function() {
+        return $(this).text().trim() === 'Incorrect!';
+    }).text('Not quite');
     $(resultArea).find(".failure-title").removeClass("hidden");
     $(resultArea).find(".failure-details").removeClass("hidden");
     $(resultArea).addClass('wrong-selection').removeClass('correct-selection');
@@ -556,7 +557,7 @@ EdlyCarouselXBlock.prototype.updateContainerDiv = function(option) {
 
 EdlyCarouselXBlock.prototype.handleSubmit = function(submitBtn) {
     _EdlyCarouselXBlock = this;
-    var isCorrect = true, partialCorrect = false, partialWrong = false;
+    var isCorrect = true, partialCorrect = false, partialWrong = false, missedOptions = [];
     _EdlyCarouselXBlock.updateContainerDiv(submitBtn);
     var isResponseBased = _EdlyCarouselXBlock.containerDiv && _EdlyCarouselXBlock.containerDiv.prop('id').includes('resp');
     _EdlyCarouselXBlock.disableSubmitBtn();
@@ -583,16 +584,30 @@ EdlyCarouselXBlock.prototype.handleSubmit = function(submitBtn) {
                     partialWrong = true;
                 }
             }
-        } else if (option.type === 'checkbox'){
-            isCorrect = isCorrect && !includeClass;
+        } else {
+            if (option.type === 'checkbox') {
+                isCorrect = isCorrect && !includeClass;
+            }
+            if (includeClass) {
+                missedOptions.push(option);
+            }
         }
     })
+    // After a wrong answer, also mark the right option(s) the learner didn't pick. Summative
+    // slides keep them hidden, since a retry would otherwise be given the answer.
+    if (!isCorrect && _EdlyCarouselXBlock.assessmentType() !== 'summative') {
+        missedOptions.forEach(function(option) {
+            _EdlyCarouselXBlock.applySelectionStyle(option, true);
+            // The mark is colour + an aria-hidden icon, so screen readers need it as text.
+            $(option).parents('div.answer-div').find('label').first()
+                .append('<span class="missed-correct-answer">Correct answer</span>');
+        });
+    }
     if (isResponseBased && (partialCorrect && (partialWrong || !isCorrect))){
         $(_EdlyCarouselXBlock.containerDiv).find("#result").removeClass('hidden');
     }
 
     _EdlyCarouselXBlock.showSubmissionResults(isCorrect, submitBtn !== null);
-    _EdlyCarouselXBlock.resetState = true;
 }
 
 EdlyCarouselXBlock.prototype.enableSubmitBtn = function() {
@@ -618,7 +633,7 @@ EdlyCarouselXBlock.prototype.resetStyles = function() {
         $(option).parents("div").removeClass(classesToRemove);
         $(option).parents(".answer-div").find('.answer-feedback').addClass('hidden');
     })
-    _EdlyCarouselXBlock.resetState = false;
+    $(_EdlyCarouselXBlock.containerDiv).find('.missed-correct-answer').remove();
 }
 
 EdlyCarouselXBlock.prototype.highlightSelectedItem = function(item) {
@@ -631,9 +646,9 @@ EdlyCarouselXBlock.prototype.highlightSelectedItem = function(item) {
         oneOptionSelected = oneOptionSelected || option.checked
     })
     oneOptionSelected ? _EdlyCarouselXBlock.enableSubmitBtn() : _EdlyCarouselXBlock.disableSubmitBtn()
-    if (_EdlyCarouselXBlock.resetState) {
-        _EdlyCarouselXBlock.resetStyles();
-    }
+    // Editing an answer clears this container's previous result. Done on every click (a no-op before
+    // a submit), since a single block-wide flag left other containers' marks stale.
+    _EdlyCarouselXBlock.resetStyles();
 }
 
 EdlyCarouselXBlock.prototype.handleOptionClick = function(option) {
@@ -1139,7 +1154,6 @@ EdlyCarouselXBlock.prototype.startCarousel = function() {
 			// onchange callback
 			this.updatePaginationUI();
 			this.makeCallback('onBeforeChange', this);
-		    this.options.xblock.slideChanged();
 		},
 		getPagerStepIndex: function() {
 		    if (this.skipShortening() || this.currentStep === 0) {
