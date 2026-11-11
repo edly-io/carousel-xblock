@@ -1206,6 +1206,8 @@ EdlyCarouselXBlock.prototype.startCarousel = function() {
             }
 		},
 		switchSlide: function() {
+			// The one-shot check class must not replay on the slide we land on.
+			$(this.options.xblock.element).removeClass('is-just-checked');
 		    if (typeof wistiaEmbeds !== 'undefined') {
 		        this.pausePlayers(wistiaEmbeds);
 		    }
