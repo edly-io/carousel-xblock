@@ -113,7 +113,10 @@
     padding: 15px 60px;
 }
 .carousel .mask {
-	touch-action: pan-y pinch-zoom; /* vertical drags scroll the page, horizontal ones swipe the slides */
+	/* Vertical drags scroll the page, horizontal ones swipe the slides. iOS Safari drops the whole
+	   declaration over "pinch-zoom" (falling back to auto, which cancels the swipe), so pan-y comes first. */
+	touch-action: pan-y;
+	touch-action: pan-y pinch-zoom;
 	width: 100%;
     overflow: hidden;
     height: auto !important;
